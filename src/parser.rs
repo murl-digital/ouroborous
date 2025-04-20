@@ -3,8 +3,8 @@ use nom::{
     branch::alt,
     bytes::tag,
     character::{complete::multispace0, digit1, streaming::char},
-    combinator::{complete, map_res, rest, value},
-    error::{Error, ErrorKind, ParseError},
+    combinator::{complete, map_res, value},
+    error::{Error, ParseError},
     multi::many0,
     sequence::preceded,
 };
@@ -36,13 +36,11 @@ fn halt(input: &str) -> IResult<&str, Instruction> {
 }
 
 fn jump_equals(input: &str) -> IResult<&str, Instruction> {
-    println!("running jump equals");
     let (input, (val, dest)) = (
         preceded(char('?'), map_res(digit1(), str::parse)),
         preceded(char(','), map_res(digit1(), str::parse)),
     )
         .parse_complete(input)?;
-    println!("success!");
 
     Ok((input, Instruction::JumpEquals(val, dest)))
 }
@@ -71,7 +69,7 @@ where
 }
 
 pub fn parse_program(program: &str) -> IResult<&str, Vec<Instruction>> {
-    let mut parser = many0(complete(ws(alt([
+    many0(complete(ws(alt((
         increment,
         decrement,
         move_right,
@@ -81,9 +79,8 @@ pub fn parse_program(program: &str) -> IResult<&str, Vec<Instruction>> {
         jump_equals,
         jump_not_equals,
         rollback,
-    ]))));
-
-    parser.parse(program)
+    )))))
+    .parse(program)
 }
 
 #[cfg(test)]
